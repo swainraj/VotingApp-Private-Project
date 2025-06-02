@@ -1,0 +1,2 @@
+image: 730335280129.dkr.ecr.us-east-1.amazonaws.com/result-ecr
+postgresConn: "postgres://postgres:postgres@10.0.139.153:5432/postgres"

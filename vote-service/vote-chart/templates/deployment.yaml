@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vote
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vote
+  template:
+    metadata:
+      labels:
+        app: vote
+    spec:
+      containers:
+      - name: vote
+        image: "{{ .Values.image }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: REDIS_HOST
+          value: "{{ .Values.redisHost }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vote
+spec:
+  type: ClusterIP
+  selector:
+    app: vote
+  ports:
+  - port: 80
+    targetPort: 80

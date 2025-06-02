@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result
+  namespace: voting
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+      - name: result
+        image: "{{ .Values.image }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: POSTGRES_CONN
+          value: "{{ .Values.postgresConn }}"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+  namespace: voting
+spec:
+  selector:
+    app: result
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

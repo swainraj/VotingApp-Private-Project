@@ -1,0 +1,2 @@
+image: 730335280129.dkr.ecr.us-east-1.amazonaws.com/vote-ecr
+redisHost: "10.0.140.138"
