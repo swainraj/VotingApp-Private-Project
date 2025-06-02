@@ -1,0 +1,119 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: VotingAPP-Prod-Private
+  region: us-east-1
+kubernetesNetworkConfig:
+  ipFamily: IPv6
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+  - "autoscaling"
+
+vpc:
+  id: "vpc-0f50739732a3e8e75"
+  subnets:
+    private:
+      VotingAPP-subnet-private1-us-east-1a:
+        id: "subnet-00d30d80ece9f1ad2"
+        region: "us-east-1a"
+      VotingAPP-subnet-private2-us-east-1b:
+        id: "subnet-05111c731366a7162"
+        region: "us-east-1b"
+
+addons:
+  - name: vpc-cni
+    version: latest
+  - name: coredns
+    version: latest
+  - name: kube-proxy
+    version: latest
+
+managedNodeGroups:
+  - name: VotingAPP-NG-1-Private
+    ami: ami-0c77e1f53cb1c1f1f
+    amiFamily: AmazonLinux2023
+    minSize: 1
+    maxSize: 2
+    desiredCapacity: 1
+    instanceType: "t3a.medium"
+    volumeSize: 30
+    volumeEncrypted: true
+    volumeKmsKeyID: ac7ec002-a26e-4489-a04c-80d30af34756
+    privateNetworking: true
+    subnets:
+      - VotingAPP-subnet-private1-us-east-1a
+      - VotingAPP-subnet-private2-us-east-1b
+    labels: {role: VotingAPP-NG-1}
+    ssh:
+      publicKeyName: VotingAPP-Keypair
+    tags:
+      nodegroup-role: VotingAPP-NG-1
+      nodegroup-name: VotingAPP-NG-1
+      Project: VotingAPP
+      Env: Prod
+      Layer: App
+      Managedby: Workmates
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      withAddonPolicies:
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        ebs: true
+        efs: true
+        awsLoadBalancerController: true
+        cloudWatch: true
+
+  - name: VotingAPP-Prod-Monitoring-NG-Private
+    ami: ami-0c77e1f53cb1c1f1f
+    amiFamily: AmazonLinux2023
+    minSize: 1
+    maxSize: 2
+    desiredCapacity: 1
+    instanceType: "t3a.medium"
+    volumeSize: 20
+    volumeEncrypted: true
+    volumeKmsKeyID: ac7ec002-a26e-4489-a04c-80d30af34756
+    privateNetworking: true
+    subnets:
+      - VotingAPP-subnet-private1-us-east-1a
+      - VotingAPP-subnet-private2-us-east-1b
+    labels: {role: Prod-Monitoring-NG}
+    ssh:
+      publicKeyName: VotingAPP-Keypair
+    tags:
+      nodegroup-role: Prod-Monitoring-NG
+      nodegroup-name: Prod-Monitoring-NG
+      Project: VotingAPP
+      Env: Prod
+      Layer: App
+      Managedby: Workmates
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      withAddonPolicies:
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        ebs: true
+        efs: true
+        awsLoadBalancerController: true
+        cloudWatch: true
+
+iam:
+  withOIDC: true
+
+secretsEncryption:
+  keyARN: arn:aws:kms:us-east-1:730335280129:key/ac7ec002-a26e-4489-a04c-80d30af34756
