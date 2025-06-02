@@ -21,25 +21,11 @@ Provision an encrypted EFS volume with a customer-managed KMS key, mount it usin
   - Deploy to EKS
 
 ---
-
-## 🔁 Steps
-
-### 1. Create KMS Key (if needed)
-```bash
-aws kms create-key --description "KMS key for EFS encryption"
-aws kms list-keys
-📌 Example Key ARN:
-
-text
-Copy
-Edit
-arn:aws:kms:us-east-1:123456789012:key/abcd1234-5678-90ef-ghij-klmnopqrstuv
+📌 Example CMK ARN:
+ - arn:aws:kms:us-east-1:123456789012:key/abcd1234-5678-90ef-ghij-klmnopqrstuv
 2. Create IAM Policy for KMS Access
-Create efs-kms-policy.json:
+Save the following as efs-kms-policy.json:
 
-json
-Copy
-Edit
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -72,8 +58,8 @@ bash
 Copy
 Edit
 export CLUSTER_NAME=your-cluster-name
-export ROLE_NAME=AmazonEKS_EFS_CSI_DriverRole
 export REGION=us-east-1
+export ROLE_NAME=AmazonEKS_EFS_CSI_DriverRole
 
 eksctl create iamserviceaccount \
   --name efs-csi-controller-sa \
@@ -95,7 +81,7 @@ eksctl create addon \
   --region $REGION \
   --service-account-role-arn arn:aws:iam::123456789012:role/$ROLE_NAME \
   --force
-5. Create EFS File System with KMS Encryption
+5. Create EFS File System (Encrypted)
 bash
 Copy
 Edit
@@ -107,18 +93,16 @@ aws efs create-file-system \
   --tags Key=Name,Value=my-efs
 📌 Save the File System ID (e.g., fs-12345678)
 
-6. Create Mount Targets for EFS
-Repeat for each subnet in your EKS VPC:
-
+6. Create Mount Targets (Repeat per Subnet)
 bash
 Copy
 Edit
 aws efs create-mount-target \
   --file-system-id fs-12345678 \
-  --subnet-id subnet-xxxxxxx \
+  --subnet-id subnet-xxxxxxxx \
   --security-groups sg-xxxxxxxx
-7. Deploy StorageClass, PV, and PVC to Kubernetes
-efs-sc.yaml
+7. Deploy StorageClass, PersistentVolume, and PVC
+efs-sc.yaml:
 
 yaml
 Copy
@@ -128,7 +112,7 @@ kind: StorageClass
 metadata:
   name: efs-sc
 provisioner: efs.csi.aws.com
-efs-pv-pvc.yaml
+efs-pv-pvc.yaml:
 
 yaml
 Copy
@@ -160,15 +144,15 @@ spec:
   resources:
     requests:
       storage: 5Gi
-Apply both YAML files:
+Apply the configs:
 
 bash
 Copy
 Edit
 kubectl apply -f efs-sc.yaml
 kubectl apply -f efs-pv-pvc.yaml
-🧪 Example Pod Using EFS
-app-using-efs.yaml
+8. Deploy a Test Pod Using EFS
+app-using-efs.yaml:
 
 yaml
 Copy
@@ -189,17 +173,9 @@ spec:
   - name: efs-vol
     persistentVolumeClaim:
       claimName: efs-pvc
-Deploy it:
+Deploy the pod:
 
 bash
 Copy
 Edit
 kubectl apply -f app-using-efs.yaml
-🔐 Final Notes
-✅ EFS is encrypted with the KMS key you provided.
-
-✅ EFS CSI driver must have permissions to call kms:Encrypt, kms:Decrypt, etc.
-
-✅ Ensure KMS key policy allows access from EFS CSI driver role.
-
-✅ Encryption and decryption happen transparently.
