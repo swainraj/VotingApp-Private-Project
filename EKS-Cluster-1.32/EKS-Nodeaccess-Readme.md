@@ -50,53 +50,57 @@ data:
       username: Test
       groups:
         - system:masters
-🧠 Explanation
-mapRoles
+```
+## 🧠 Explanation
 
-Used for:
+### `mapRoles`
 
-    EC2 node instance roles (to allow them to join the cluster)
+**Used for:**
 
-    IAM roles (e.g., admin or CI/CD roles)
+- EC2 node instance roles (to allow them to join the cluster)
+- IAM roles (e.g., admin or CI/CD roles)
 
-Fields:
+**Fields:**
 
-    rolearn: Full IAM Role ARN
+- `rolearn`: Full IAM Role ARN
+- `username`: Logical username in Kubernetes
+- `groups`: Kubernetes RBAC groups (e.g., `system:nodes`, `system:masters`)
 
-    username: Logical username in Kubernetes
+---
 
-    groups: Kubernetes RBAC groups (e.g., system:nodes, system:masters)
+### `mapUsers`
 
-mapUsers
+**Used to grant access to individual IAM users.**
 
-Used to grant access to individual IAM users.
+**Fields:**
 
-Fields:
+- `userarn`: Full IAM User ARN
+- `username`: Logical username in Kubernetes
+- `groups`: Kubernetes RBAC groups (e.g., `system:masters`)
 
-    userarn: Full IAM User ARN
+---
 
-    username: Logical username in Kubernetes
-
-    groups: Kubernetes RBAC groups (e.g., system:masters)
-
-🚀 Apply the Config
+## 🚀 Apply the Config
 
 Save the YAML file and apply it:
 
+```bash
 kubectl apply -f aws-auth.yaml
-
+```
 Verify it was applied:
 
 kubectl get configmap aws-auth -n kube-system -o yaml
 
-✅ Test Access
+## ✅ Test Access
 
 Assume the role or log in as the IAM user, then run:
 
+```bash
 kubectl get nodes
-
+```
 If access is correctly configured, the user or role should see the cluster resources without error.
-⚠️ Notes
+
+##⚠️ Notes
 
     Do not remove the original creator's access until new access is verified.
 
