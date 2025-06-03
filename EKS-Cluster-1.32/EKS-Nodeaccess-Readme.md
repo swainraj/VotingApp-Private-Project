@@ -89,7 +89,9 @@ kubectl apply -f aws-auth.yaml
 ```
 Verify it was applied:
 
+```bash
 kubectl get configmap aws-auth -n kube-system -o yaml
+```
 
 ## ✅ Test Access
 
